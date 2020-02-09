@@ -75,13 +75,28 @@ function viewEmployees() {
     var query = "SELECT employee_id, first_name, last_name, title, salary, dept, manager FROM employee e ";
     query += "JOIN role r ON e.role_id=r.role_id JOIN manager m ";
     query += "ON e.manager_id=m.manager_id JOIN dept d ON r.dept_id=d.dept_id";
-
     connection.query(query, function (err, res) {
         console.table(res)
-
         start();
     })
 
+}
+
+function viewDepartments(){
+    var query = "SELECT * FROM dept";
+    connection.query(query, function (err, res) {
+        console.table(res)
+        start();
+    })
+}
+
+function viewRoles(){
+    var query = "SELECT role_id, title, salary, dept FROM role r ";
+    query += "JOIN dept d ON r.dept_id=d.dept_id";
+    connection.query(query, function (err, res) {
+        console.table(res)
+        start();
+    })
 }
 
 
