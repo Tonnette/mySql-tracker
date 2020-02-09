@@ -82,7 +82,7 @@ function viewEmployees() {
 
 }
 
-function viewDepartments(){
+function viewDepartments() {
     var query = "SELECT * FROM dept";
     connection.query(query, function (err, res) {
         console.table(res)
@@ -90,7 +90,7 @@ function viewDepartments(){
     })
 }
 
-function viewRoles(){
+function viewRoles() {
     var query = "SELECT role_id, title, salary, dept FROM role r ";
     query += "JOIN dept d ON r.dept_id=d.dept_id";
     connection.query(query, function (err, res) {
@@ -98,6 +98,99 @@ function viewRoles(){
         start();
     })
 }
+
+function addEmployee() {
+    const employeeQuestions = [
+        {
+            name: "first_name",
+            type: "input",
+            message: "What is the employee's first name?"
+        },
+        {
+            name: "last_name",
+            type: "input",
+            message: "What is the employee's last name?"
+        },
+        {
+            name: "role",
+            type: "list",
+            message: "What is the employee's role?",
+            choices: ["Sales Lead", "Salesperson"],
+            // "Lead Engineer", "Software Engineer", 
+            // "Accountant", "Legal Team Lead", "Lawyer"]
+            // validate: role()
+        }
+    ]
+    inquirer.prompt(employeeQuestions)
+        .then(function (answer) {
+            if (answer.role == "Sales Lead") {
+                let query = "insert into employee set ?";
+                connection.query(query,
+                    {
+                        first_name: answer.first_name,
+                        last_name: answer.last_name,
+                        role_id: 1
+
+                    },
+                    function (err, res) {
+                        if (err) throw err;
+                        console.log("employee added!");
+                        // initiateQues();
+                        start()
+                    }
+
+
+
+                )
+            }
+
+
+
+        });
+}
+
+
+
+
+//                 connection.query(
+//                     "INSERT INTO employee SET ?",
+//                     {
+//                         first_name: answer.first_name,
+//                         last_name: answer.last_name,
+//                     },
+
+//                     function (err) {
+//                         if (err) throw err;
+//                         console.log("Employee name added successfully!");
+//                     }
+
+//                 )
+
+
+//                 function(error) {
+//                     if (error) throw err;
+//                 }
+//                   );
+// }
+//                 else if (answer.role == "Salesperson") {
+//     connection.query(
+//         "UPDATE employee SET ?",
+//         [
+//             {
+//                 role_id: 2,
+//             },
+
+//         ],
+//         function (error) {
+//             if (error) throw err;
+//         }
+//     );
+// }
+
+
+//             })
+//         }
+
 
 
 
