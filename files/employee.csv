@@ -1,0 +1,9 @@
+employee_id,first name,last name,role_id,manager_id
+1,John,Doe,1,1
+2,Mike ,Chan,2,2
+3,Ashley,Rodriguez,3,1
+4,Kevin,Tupik,4,1
+5,Malia,Brown,5,1
+6,Sarah,Lourd,6,1
+7,Tom,Allen,7,3
+8,Christian,Eckenrode,8,4
