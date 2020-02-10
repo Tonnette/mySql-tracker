@@ -36,8 +36,7 @@ function start() {
                 "view all departments",
                 "view all roles",
                 "Add Employee",
-                "Add role",
-                "add department",
+                "Add role and department",
                 "update employee roles"
             ]
         })
@@ -64,12 +63,8 @@ function start() {
                     addEmployee();
                     break;
 
-                case "Add role":
-                    addRole();
-                    break;
-
-                case "add department":
-                    addDepartment();
+                case "Add role and department":
+                    addRoleAddDept();
                     break;
 
                 case "update employee roles":
@@ -146,6 +141,7 @@ function addEmployee() {
 
                         },
                         function (err, res) {
+
                             if (err) throw err;
                             console.log("employee added!");
 
@@ -156,9 +152,17 @@ function addEmployee() {
         });
 }
 
-function addRole() {
-    inquirer
-        .prompt([
+function addRoleAddDept() {
+    let query = "select role_id, role.title from role";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        const dataRoleArray = [];
+        const dataDeptArray = [];
+        res.forEach(element => {
+            dataRoleArray.push(element.title)
+        })
+
+        const roleQues = [
             {
                 name: "whatRole",
                 type: "input",
@@ -176,64 +180,154 @@ function addRole() {
                 type: "input",
                 message: "What is the department of the role?"
             },
+        ]
+        inquirer.prompt(roleQues)
+            .then((answer) => {
+                let greatestID = 1;
+                for (var i = 0; i < dataRoleArray.length; i++) {
+                    greatestID = dataRoleArray.length
+                }
+                let deptId = greatestID + 1;
+                for (var i = 0; i < dataRoleArray.length; i++) {
+                    if (answer.whatRole == dataRoleArray[i]) {
 
-        ])
+                        console.log("role already exists. Try again!")
+                        start();
+                        return;
+                    }
+                }
+                // roleArray.push(answer.whatRole);
+                // deptArray.push(answer.deparment);
+                // console.log("what is deptID " + deptId)
 
-        .then(function (answer) {
-            
-            let greatestID = 1;
-            for (var i = 0; i < deptArray.length; i++) {
-                greatestID = deptArray.length
-            }
+                var query = "insert into dept set ?";
+                connection.query(query,
+                    {
+                        dept: answer.department,
+                        dept_id: deptId
 
-            let deptId = greatestID + 1;
-           
+                    },
 
-            for (var i = 0; i < roleArray.length; i++){
-                if(answer.whatRole == roleArray[i]){
-                    console.log("role already exists. Try again!")
-                    start();
-                    return;
-                } 
-            }
-                    roleArray.push(answer.whatRole);
-                    deptArray.push(answer.deparment);
-                    console.log("what is deptID " + deptId)
-                    var query = "insert into dept set ?";
-                    connection.query(query,
-                        {
-                            dept: answer.department,
-                            dept_id: deptId
-        
-                        },
-                    )
-                    var query = "insert into role set ?";
-                    connection.query(query,
-                        {
-                            title: answer.whatRole,
-                            salary: answer.salary,
-                            dept_id: deptId
-        
-                        },
-                        function (err, res) {
-                            if (err) throw err;
-                            console.log("role added!\n");
-                            start();
-                        }
-                    )
+                )
 
 
 
+                var query = "insert into role set ?";
+                connection.query(query,
+                    {
+                        title: answer.whatRole,
+                        salary: answer.salary,
+                        dept_id: deptId
 
-                
+                    },
+                    function (err, res) {
 
-            
-          
+                        if (err) throw err;
+                        console.log("role added!\n");
+                        start();
+                    }
+                )
+
+            })
+    })
+}
+//    var roleQuestions = [
+//             {
+//                 name: "whatRole",
+//                 type: "input",
+//                 message: "What role do you want to add?",
+//                 // validate: validateRole,
+
+//             },
+//             {
+//                 name: "salary",
+//                 type: "input",
+//                 message: "What is this role's salary?"
+//             },
+//             {
+//                 name: "department",
+//                 type: "input",
+//                 message: "What is the department of the role?"
+//             },
+
+//         ]
+//         inquirer.prompt(roleQuestions)
+//         .then(function (answer) {
+//             let greatestID = 1;
+//             for (var i = 0; i < dataRoleArray.length; i++) {
+//                 greatestID = dataRoleArray.length
+//             }
 
 
 
-        });
-};
+//             let deptId = greatestID + 1;
+//             for (var i = 0; i < dataRoleArrayArray.length; i++) {
+//                 if (answer.whatRole == dataRoleArrayArray[i]) {
+
+//                     console.log("role already exists. Try again!")
+//                     start();
+//                     return;
+//                 }
+//             }
+//             // roleArray.push(answer.whatRole);
+//             // deptArray.push(answer.deparment);
+//             // console.log("what is deptID " + deptId)
+
+//             var query = "insert into dept set ?";
+//             connection.query(query,
+//                 {
+//                     dept: answer.department,
+//                     dept_id: deptId
+
+//                 },
+
+//             )
+
+//             var query = "insert into role set ?";
+//             connection.query(query,
+//                 {
+//                     title: answer.whatRole,
+//                     salary: answer.salary,
+//                     dept_id: deptId
+
+//                 },
+//                 function (err, res) {
+
+//                     if (err) throw err;
+//                     console.log("role added!\n");
+//                     start();
+//                 }
+//             )
+
+//         });
+// };
+
+// employeeArray = []
+
+// function updateEmployeeRole(){
+//     const updateQuestions = [
+//         {
+//             name: "whatEmployee",
+//             type: "list",
+//             message: "What employee do you want to update?",
+//             choices: employeeArray
+//         },
+//         {
+//             name: "last_name",
+//             type: "input",
+//             message: "What is the employee's last name?"
+//         },
+//         {
+//             name: "role",
+//             type: "list",
+//             message: "What is the employee's role?",
+//             choices: roleArray
+//             // "Accountant", "Legal Team Lead", "Lawyer"]
+//             // validate: role()
+//         }
+//     ]
+
+// }
 
 
 
