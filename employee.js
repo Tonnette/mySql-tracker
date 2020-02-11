@@ -22,8 +22,18 @@ connection.connect(function (err) {
 });
 
 roleArray = ["Sales Lead", "Salesperson", "Lead Engineer", "Software Engineer", "Accountant", "Legal Team Lead", "Lawyer"];
-
 deptArray = ["Sales", "Engineering", "Finance", "Legal"]
+
+const validateRole = async (whatRole) => {
+    if (whatRole == "Sales Lead" || whatRole == "Salesperson" || whatRole == "Lead Engineer" || whatRole == "Software Engineer" || whatRole == "Accountant" || whatRole == "Legal Team Lead" || whatRole == "Lawyer") {
+        return 'Role already exists';
+    }
+    else {
+        return true;
+    }
+}
+    
+
 function start() {
     inquirer
         .prompt({
@@ -129,45 +139,55 @@ function addEmployee() {
 
     inquirer.prompt(employeeQuestions)
         .then(function (answer) {
-            for (var i = 0; i < roleArray.length; i++) {
-                if (answer.role == roleArray[i]) {
-                    var position = i + 1;
-                    var query = "insert into employee set ?";
-                    connection.query(query,
-                        {
-                            first_name: answer.first_name,
-                            last_name: answer.last_name,
-                            role_id: position
+            let query = "select role_id, role.title from role";
+            connection.query(query, function (err, res) {
+                if (err) throw err;
 
-                        },
-                        function (err, res) {
+                res.forEach(database => {
+                    if (answer.role == database.title) {
+                        console.log("what is database.title? " + database.title)
+                        var databasePos = database.role_id;
+                        var query = "insert into employee set ?";
+                        connection.query(query,
+                            {
+                                first_name: answer.first_name,
+                                last_name: answer.last_name,
+                                role_id: databasePos
 
-                            if (err) throw err;
-                            console.log("employee added!");
+                            },
+                            function (err, res) {
 
-                            start()
-                        })
-                }
-            }
-        });
+                                if (err) throw err;
+                                console.log("employee added!");
+
+                                start()
+
+                            })
+                    }
+                })
+            })
+        })
 }
 
+
 function addRoleAddDept() {
-    let query = "select role_id, role.title from role";
+    let query = "select dept_id, dept.dept from dept";
     connection.query(query, function (err, res) {
         if (err) throw err;
-        const dataRoleArray = [];
+        // const dataRoleArray = [];
         const dataDeptArray = [];
-        res.forEach(element => {
-            dataRoleArray.push(element.title)
+
+        res.forEach(database => {
+            dataDeptArray.push(database.title)
+            deptArray.push(database.title)
         })
 
-        const roleQues = [
+        const roleQuestions = [
             {
                 name: "whatRole",
                 type: "input",
                 message: "What role do you want to add?",
-                // validate: validateRole,
+                validate: validateRole,
 
             },
             {
@@ -181,53 +201,63 @@ function addRoleAddDept() {
                 message: "What is the department of the role?"
             },
         ]
-        inquirer.prompt(roleQues)
+        inquirer.prompt(roleQuestions)
             .then((answer) => {
                 let greatestID = 1;
-                for (var i = 0; i < dataRoleArray.length; i++) {
-                    greatestID = dataRoleArray.length
+                for (var i = 0; i < dataDeptArray.length; i++) {
+                    greatestID = dataDeptArray.length
                 }
                 let deptId = greatestID + 1;
-                for (var i = 0; i < dataRoleArray.length; i++) {
-                    if (answer.whatRole == dataRoleArray[i]) {
 
-                        console.log("role already exists. Try again!")
-                        start();
-                        return;
+                let query = "select role_id, role.title from role";
+                connection.query(query, function (err, res) {
+                    if (err) throw err;
+                    // const dataRoleArray = [];
+                    const dataRoleArray = [];
+
+                    res.forEach(databaseRole => {
+                        dataRoleArray.push(databaseRole.title)
+                        roleArray.push(databaseRole.title)
+                    })
+
+                    for (var i = 0; i < dataRoleArray.length; i++) {
+                        if (answer.whatRole == dataRoleArray[i]) {
+
+                            console.log("role already exists. Try again!")
+                            start();
+                            return;
+                        }
                     }
-                }
-                // roleArray.push(answer.whatRole);
-                // deptArray.push(answer.deparment);
-                // console.log("what is deptID " + deptId)
+                    // roleArray.push(answer.whatRole);
+                    // deptArray.push(answer.deparment);
+                    // console.log("what is deptID " + deptId)
 
-                var query = "insert into dept set ?";
-                connection.query(query,
-                    {
-                        dept: answer.department,
-                        dept_id: deptId
+                    var query = "insert into dept set ?";
+                    connection.query(query,
+                        {
+                            dept: answer.department,
+                            dept_id: deptId
 
-                    },
+                        },
 
-                )
+                    )
+                    var query = "insert into role set ?";
+                    connection.query(query,
+                        {
+                            title: answer.whatRole,
+                            salary: answer.salary,
+                            dept_id: deptId
 
+                        },
+                        function (err, res) {
 
+                            if (err) throw err;
+                            console.log("role added!\n");
+                            start();
+                        }
+                    )
 
-                var query = "insert into role set ?";
-                connection.query(query,
-                    {
-                        title: answer.whatRole,
-                        salary: answer.salary,
-                        dept_id: deptId
-
-                    },
-                    function (err, res) {
-
-                        if (err) throw err;
-                        console.log("role added!\n");
-                        start();
-                    }
-                )
-
+                })
             })
     })
 }
