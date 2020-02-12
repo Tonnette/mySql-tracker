@@ -262,10 +262,11 @@ function addRoleAddDept() {
     })
 }
 
-
+var employeeFirstNameArray = []
 var employeeArray = []
+var employeeRoleIdArray = []
 function updateEmployeeRole() {
-    var query = "SELECT employee_id, first_name, last_name FROM employee e ";
+    var query = "SELECT employee_id, first_name, last_name, role_id FROM employee e ";
     connection.query(query, function (err, res) {
         if (err) throw err;
 
@@ -273,7 +274,9 @@ function updateEmployeeRole() {
             if (err) throw err;
 
             res.forEach(database => {
-                employeeArray.push(`${database.first_name} ${database.last_name}`) 
+                employeeArray.push(`${database.first_name} ${database.last_name}`)
+                employeeRoleIdArray.push(`${database.role_id}`)
+                employeeFirstNameArray.push(`${database.first_name}`)
             })
 
             const updateEmployeeRoleQuests = [
@@ -289,11 +292,46 @@ function updateEmployeeRole() {
                 .then((answer) => {
                     // console.log("what is the array? " + employeeArray)
                     console.log("you want to update " + answer.who)
-                    // res.forEach(database => {
-                    
-                         
+                    chosenName = answer.who
+                    console.log("chosen anem " + chosenName)
+                    console.log("array " + employeeFirstNameArray)
+                    connection.query(query, function (err, res) {
+                        if (err) throw err;
 
-                        
+                        res.forEach(database => {
+                            var bothNames = database.first_name + " " + database.last_name;
+                            console.log(bothNames)
+                            if (bothNames == chosenName) {
+                                console.log(bothNames + " " + database.role_id)
+
+                                var query = "SELECT role_id, title FROM role";
+                                connection.query(query, function (err, res) {
+                                    if (err) throw err;
+
+                                    res.forEach(databaseRole => {
+                                        if(database.role_id == databaseRole.role_id){
+                                            console.log("what's the role? " + databaseRole.title)
+                                        }
+
+                                    })
+                                    
+
+
+                                }
+                                   
+                                )
+                            }
+
+
+
+                        })
+
+                    })
+
+
+
+
+
                     // }
                     // )
                 })
