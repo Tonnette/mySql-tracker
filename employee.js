@@ -21,17 +21,22 @@ connection.connect(function (err) {
     start();
 });
 
-roleArray = ["Sales Lead", "Salesperson", "Lead Engineer", "Software Engineer", "Accountant", "Legal Team Lead", "Lawyer"];
-deptArray = ["Sales", "Engineering", "Finance", "Legal"]
+// roleArray = ["Sales Lead", "Salesperson", "Lead Engineer", "Software Engineer", "Accountant", "Legal Team Lead", "Lawyer"];
+// deptArray = ["Sales", "Engineering", "Finance", "Legal"]
 
-const validateRole = async (whatRole) => {
-    if (whatRole == "Sales Lead" || whatRole == "Salesperson" || whatRole == "Lead Engineer" || whatRole == "Software Engineer" || whatRole == "Accountant" || whatRole == "Legal Team Lead" || whatRole == "Lawyer") {
-        return 'Role already exists';
-    }
-    else {
-        return true;
-    }
-}
+deptArray = [];
+roleArray = [];
+newRoleArray = [];
+newDeptArray =[];
+
+// const validateRole = async (whatRole) => {
+//     if (whatRole == "Sales Lead" || whatRole == "Salesperson" || whatRole == "Lead Engineer" || whatRole == "Software Engineer" || whatRole == "Accountant" || whatRole == "Legal Team Lead" || whatRole == "Lawyer") {
+//         return 'Role already exists';
+//     }
+//     else {
+//         return true;
+//     }
+// }
 
 
 function start() {
@@ -46,7 +51,7 @@ function start() {
                 "view all departments",
                 "view all roles",
                 "Add Employee",
-                "Add role and department",
+                "Add role",
                 "update employee roles"
             ]
         })
@@ -73,8 +78,8 @@ function start() {
                     addEmployee();
                     break;
 
-                case "Add role and department":
-                    addRoleAddDept();
+                case "Add role":
+                    addRole();
                     break;
 
                 case "update employee roles":
@@ -115,6 +120,20 @@ function viewRoles() {
 
 
 function addEmployee() {
+    let query = "select role_id, role.title from role";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+
+        res.forEach(database => {
+            roleArray.push(database.title)
+
+        }
+
+
+        )
+
+    })
+
     const employeeQuestions = [
         {
             name: "first_name",
@@ -169,94 +188,98 @@ function addEmployee() {
         })
 }
 
+const roleQuestion = [
+    {
+        name: "whatRole",
+        type: "input",
+        message: "What role do you want to add?"
+        // validate: validateRole,
 
-function addRoleAddDept() {
+    }
+];
+
+const nextRoleQuests = [
+    {
+        name: "salary",
+        type: "input",
+        message: "What is this role's salary?"
+    },
+    {
+        name: "department",
+        type: "rawlist",
+        message: "What is the department of the role?",
+        choices: deptArray
+    }
+]
+
+function addRole() {
     let query = "select dept_id, dept.dept from dept";
     connection.query(query, function (err, res) {
         if (err) throw err;
-        // const dataRoleArray = [];
-        const dataDeptArray = [];
 
         res.forEach(database => {
-            dataDeptArray.push(database.title)
-            deptArray.push(database.title)
+            deptArray.push(database.dept)
+
         })
+        console.log("what is deptArray" + deptArray)
 
-        const roleQuestions = [
-            {
-                name: "whatRole",
-                type: "input",
-                message: "What role do you want to add?",
-                validate: validateRole,
-
-            },
-            {
-                name: "salary",
-                type: "input",
-                message: "What is this role's salary?"
-            },
-            {
-                name: "department",
-                type: "input",
-                message: "What is the department of the role?"
-            },
-        ]
-        inquirer.prompt(roleQuestions)
+        inquirer.prompt(roleQuestion)
             .then((answer) => {
-                let greatestID = 1;
-                for (var i = 0; i < dataDeptArray.length; i++) {
-                    greatestID = dataDeptArray.length
-                }
-                let deptId = greatestID + 1;
-
                 let query = "select role_id, role.title from role";
                 connection.query(query, function (err, res) {
                     if (err) throw err;
                     // const dataRoleArray = [];
-                    const dataRoleArray = [];
+                    var roleTitle = answer.whatRole
 
                     res.forEach(databaseRole => {
-                        dataRoleArray.push(databaseRole.title)
-                        roleArray.push(databaseRole.title)
+                        newRoleArray.push(databaseRole.title)
+
                     })
 
-                    for (var i = 0; i < dataRoleArray.length; i++) {
-                        if (answer.whatRole == dataRoleArray[i]) {
+                    for (var i = 0; i < newRoleArray.length; i++) {
+                        if (answer.whatRole == newRoleArray[i]) {
 
                             console.log("role already exists. Try again!")
                             start();
                             return;
                         }
                     }
-                    // roleArray.push(answer.whatRole);
-                    // deptArray.push(answer.deparment);
-                    // console.log("what is deptID " + deptId)
 
-                    var query = "insert into dept set ?";
-                    connection.query(query,
-                        {
-                            dept: answer.department,
-                            dept_id: deptId
 
-                        },
+                    inquirer.prompt(nextRoleQuests)
+                        .then((answer) => {
+                            var query = "Select dept_id, dept.dept from dept";
+                            connection.query(query, function (err, res) {
+                                if (err) throw err;
 
-                    )
-                    var query = "insert into role set ?";
-                    connection.query(query,
-                        {
-                            title: answer.whatRole,
-                            salary: answer.salary,
-                            dept_id: deptId
 
-                        },
-                        function (err, res) {
+                                res.forEach(databaseRole => {
+                                    if (answer.department === databaseRole.dept) {
+                                        // whatIsID = databaseRole.dept_id;
+                                        console.log("whats the id" + databaseRole.dept_id)
+                                        foundRoleID = databaseRole.dept_id
+                                    }
 
-                            if (err) throw err;
-                            console.log("role added!\n");
-                            start();
-                        }
-                    )
+                                })
 
+                                var query = "insert into role set ?";
+                                connection.query(query,
+                                    {
+                                        title: roleTitle,
+                                        salary: answer.salary,
+                                        dept_id: foundRoleID
+
+                                    },
+
+                                    function (err, res) {
+
+                                        if (err) throw err;
+                                        console.log("role added!\n");
+                                        start();
+                                    }
+                                )
+                            })
+                        })
                 })
             })
     })
@@ -316,8 +339,9 @@ function updateEmployeeRole() {
 
                     {
                         name: "whatDeptNow",
-                        type: "input",
-                        message: "What department are they in now?",
+                        type: "rawlist",
+                        message: "What is the department of the role?",
+                        choices: newDeptArray
 
                     }
 
@@ -359,54 +383,27 @@ function updateEmployeeRole() {
 
                                                     res.forEach(databaseDept => {
                                                         newDeptArray.push(databaseDept.dept)
+                                                        if(answer.whatDeptNow === databaseDept.dept){
+                                                            console.log("what's the id? "  + databaseDept.dept_id)
+                                                            foundRoleID = databaseDept.dept_id
+                                                        }
 
 
                                                     })
-
-                                                });
-                                                console.log("what is new dept array? " + newDeptArray)
-                                                let newGreatestID = 1;
-                                                for (var i = 0; i < newDeptArray.length; i++) {
-                                                    var idNumber = newDeptArray.length;
-
-
-
-
-                                                }
-                                                var newDeptId = idNumber + 1;
-                                                console.log("what is the new ID? " + newDeptId)
-
-                                                var newquery = "insert into dept set ?";
-                                                connection.query(newquery,
-                                                    {
-                                                        dept: answer.whatDeptNow,
-                                                        dept_id: newDeptId
-
-                                                    },
-
-                                                )
                                                 var nextquery = "UPDATE role SET ? WHERE ? ";
                                                 connection.query(nextquery,
                                                     [
                                                         {
                                                             title: answer.whatRoleNow,
                                                             salary: answer.whatSalaryNow,
-                                                            dept_id: newDeptId
+                                                            dept_id: foundRoleID
 
 
                                                         },
                                                         {
                                                             role_id: roleIdNum
-
-
                                                         }
                                                     ],
-
-
-
-
-
-
                                                     function (err, res) {
 
                                                         if (err) throw err;
@@ -414,7 +411,7 @@ function updateEmployeeRole() {
                                                         start();
                                                     }
                                                 )
-
+                                            })
 
                                             })
 
