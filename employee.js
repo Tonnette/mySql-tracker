@@ -385,20 +385,21 @@ function updateEmployeeRole() {
                                                     },
 
                                                 )
-                                                var nextquery = "UPDATE role SET title, salary, dept_id, WHERE ? ";
+                                                var nextquery = "UPDATE role SET ? WHERE ? ";
                                                 connection.query(nextquery,
                                                     [
                                                         {
-                                                            role_id: roleIdNum
-
-                                                        },
-                                                        {
-                                                            
                                                             title: answer.whatRoleNow,
                                                             salary: answer.whatSalaryNow,
                                                             dept_id: newDeptId
 
-                                                    }
+
+                                                        },
+                                                        {
+                                                            role_id: roleIdNum
+
+
+                                                        }
                                                     ],
 
 
