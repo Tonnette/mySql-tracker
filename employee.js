@@ -262,79 +262,177 @@ function addRoleAddDept() {
     })
 }
 
-var employeeFirstNameArray = []
-var employeeArray = []
-var employeeRoleIdArray = []
+var employeeFirstNameArray = [];
+var employeeArray = [];
+var employeeRoleIdArray = [];
+var roleIdNum = [];
+
 function updateEmployeeRole() {
-    var query = "SELECT employee_id, first_name, last_name, role_id FROM employee e ";
+    let query = "select dept_id, dept.dept from dept";
     connection.query(query, function (err, res) {
         if (err) throw err;
+        // const dataRoleArray = [];
+        const newDeptArray = [];
 
+        res.forEach(database => {
+            newDeptArray.push(database.dept)
+        })
+
+
+        var query = "SELECT employee_id, first_name, last_name, role_id FROM employee e ";
         connection.query(query, function (err, res) {
             if (err) throw err;
 
-            res.forEach(database => {
-                employeeArray.push(`${database.first_name} ${database.last_name}`)
-                employeeRoleIdArray.push(`${database.role_id}`)
-                employeeFirstNameArray.push(`${database.first_name}`)
-            })
+            connection.query(query, function (err, res) {
+                if (err) throw err;
 
-            const updateEmployeeRoleQuests = [
-                {
-                    name: "who",
-                    type: "rawlist",
-                    message: "Whose role do you want to update?",
-                    choices: employeeArray
+                res.forEach(database => {
+                    employeeArray.push(`${database.first_name} ${database.last_name}`)
+                    employeeRoleIdArray.push(`${database.role_id}`)
+                    employeeFirstNameArray.push(`${database.first_name}`)
+                })
 
-                },
-            ]
-            inquirer.prompt(updateEmployeeRoleQuests)
-                .then((answer) => {
-                    // console.log("what is the array? " + employeeArray)
-                    console.log("you want to update " + answer.who)
-                    chosenName = answer.who
-                    console.log("chosen anem " + chosenName)
-                    console.log("array " + employeeFirstNameArray)
-                    connection.query(query, function (err, res) {
-                        if (err) throw err;
+                const updateEmployeeRoleQuests = [
+                    {
+                        name: "who",
+                        type: "rawlist",
+                        message: "Whose role do you want to update?",
+                        choices: employeeArray
 
-                        res.forEach(database => {
-                            var bothNames = database.first_name + " " + database.last_name;
-                            console.log(bothNames)
-                            if (bothNames == chosenName) {
-                                console.log(bothNames + " " + database.role_id)
+                    },
+                ]
+                const roleUpdate = [
+                    {
+                        name: "whatRoleNow",
+                        type: "input",
+                        message: "What role are they now?",
+                    },
+                    {
+                        name: "whatSalaryNow",
+                        type: "input",
+                        message: "What is their new salary?",
 
-                                var query = "SELECT role_id, title FROM role";
-                                connection.query(query, function (err, res) {
-                                    if (err) throw err;
+                    },
 
-                                    res.forEach(databaseRole => {
-                                        if(database.role_id == databaseRole.role_id){
-                                            console.log("what's the role? " + databaseRole.title)
-                                        }
+                    {
+                        name: "whatDeptNow",
+                        type: "input",
+                        message: "What department are they in now?",
 
-                                    })
-                                    
+                    }
 
 
+                ]
+
+                inquirer.prompt(updateEmployeeRoleQuests)
+                    .then((answer) => {
+                        // console.log("what is the array? " + employeeArray)
+                        console.log("you want to update " + answer.who)
+                        chosenName = answer.who
+                        // console.log("chosen anem " + chosenName)
+                        // console.log("array " + employeeFirstNameArray)
+                        connection.query(query, function (err, res) {
+                            if (err) throw err;
+
+                            res.forEach(database => {
+                                var bothNames = database.first_name + " " + database.last_name;
+                                // console.log(bothNames)
+                                if (bothNames == chosenName) {
+                                    // console.log(bothNames + " " + database.role_id)
+
+                                    var query = "SELECT role_id, title FROM role";
+                                    connection.query(query, function (err, res) {
+                                        if (err) throw err;
+
+                                        res.forEach(databaseRole => {
+                                            if (database.role_id == databaseRole.role_id) {
+                                                roleIdNum.push(databaseRole.role_id);
+                                                console.log(chosenName + "'s role is " + databaseRole.title)
+                                            }
+
+                                        })
+                                        inquirer.prompt(roleUpdate)
+                                            .then((answer) => {
+                                                let query = "select dept_id, dept.dept from dept";
+                                                connection.query(query, function (err, res) {
+                                                    if (err) throw err;
+
+                                                    res.forEach(databaseDept => {
+                                                        newDeptArray.push(databaseDept.dept)
+
+
+                                                    })
+
+                                                });
+                                                console.log("what is new dept array? " + newDeptArray)
+                                                let newGreatestID = 1;
+                                                for (var i = 0; i < newDeptArray.length; i++) {
+                                                    var idNumber = newDeptArray.length;
+
+
+
+
+                                                }
+                                                var newDeptId = idNumber + 1;
+                                                console.log("what is the new ID? " + newDeptId)
+
+                                                var newquery = "insert into dept set ?";
+                                                connection.query(newquery,
+                                                    {
+                                                        dept: answer.whatDeptNow,
+                                                        dept_id: newDeptId
+
+                                                    },
+
+                                                )
+                                                var nextquery = "UPDATE role SET title, salary, dept_id, WHERE ? ";
+                                                connection.query(nextquery,
+                                                    [
+                                                        {
+                                                            role_id: roleIdNum
+
+                                                        },
+                                                        {
+                                                            
+                                                            title: answer.whatRoleNow,
+                                                            salary: answer.whatSalaryNow,
+                                                            dept_id: newDeptId
+
+                                                    }
+                                                    ],
+
+
+
+
+
+
+                                                    function (err, res) {
+
+                                                        if (err) throw err;
+                                                        console.log("role updated!\n");
+                                                        start();
+                                                    }
+                                                )
+
+
+                                            })
+
+
+
+
+                                    }
+
+                                    )
                                 }
-                                   
-                                )
-                            }
 
 
+
+                            })
 
                         })
-
                     })
 
-
-
-
-
-                    // }
-                    // )
-                })
+            })
         })
     })
 }
