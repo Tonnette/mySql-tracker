@@ -51,6 +51,7 @@ function start() {
                 "delete a department",
                 "delete a role",
                 "delete an employee",
+                "view employee by manager",
                 "view budget"
             ]
         })
@@ -101,6 +102,10 @@ function start() {
 
                 case "delete an employee":
                     deleteEmployee();
+                    break;
+
+                case "view employee by manager":
+                    viewEmployeeManager();
                     break;
 
                 case "view budget":
@@ -573,65 +578,65 @@ function updateEmployeeManager() {
 
                             res.forEach(database => {
                                 if (answer.newManager === database.manager) {
-                                    foundManagerId.push(database.manager_id)
+                                    foundManagerId = database.manager_id
                                 }
 
 
                             })
-                        })
 
-                        let EmployeeQuery = "select first_name, last_name, manager_id from employee";
-                        connection.query(EmployeeQuery, function (err, res) {
-                            if (err) throw err;
 
-                            chosenName = answer.who
-
+                            let EmployeeQuery = "select first_name, last_name, manager_id from employee";
                             connection.query(EmployeeQuery, function (err, res) {
                                 if (err) throw err;
 
-                                res.forEach(database => {
-                                    var bothNames = database.first_name + " " + database.last_name;
-                                    // console.log(bothNames)
-                                    if (bothNames == chosenName) {
-                                        firstnameIs = database.first_name;
-                                        // console.log(firstnameIs)
-                                        grabFirstName.push(firstnameIs)
+                                chosenName = answer.who
+
+                                connection.query(EmployeeQuery, function (err, res) {
+                                    if (err) throw err;
+
+                                    res.forEach(database => {
+                                        var bothNames = database.first_name + " " + database.last_name;
+                                        // console.log(bothNames)
+                                        if (bothNames == chosenName) {
+                                            firstnameIs = database.first_name;
+                                            // console.log(firstnameIs)
+                                            // grabFirstName.push(firstnameIs)
 
 
 
 
-                                    }
-
-
-
-
-                                })
-                                console.log("what is first name? " + firstnameIs)
-
-                                var nextquery = "UPDATE employee SET ? WHERE ?";
-                                connection.query(nextquery,
-                                    [
-                                        {
-                                            manager_id: foundManagerId
-
-                                        },
-                                        {
-
-                                            first_name: firstnameIs
                                         }
 
 
-                                    ],
-
-                                    function (err, res) {
-
-                                        if (err) throw err;
-                                        console.log("Manager updated!\n");
-                                        start();
-                                    }
-                                )
 
 
+                                    })
+                                    console.log("what is first name? " + firstnameIs)
+
+                                    var nextquery = "UPDATE employee SET ? WHERE ?";
+                                    connection.query(nextquery,
+                                        [
+                                            {
+                                                manager_id: foundManagerId
+
+                                            },
+                                            {
+
+                                                first_name: firstnameIs
+                                            }
+
+
+                                        ],
+
+                                        function (err, res) {
+
+                                            if (err) throw err;
+                                            console.log("Manager updated!\n");
+                                            start();
+                                        }
+                                    )
+
+                                })
 
                             })
                         })
@@ -809,7 +814,7 @@ function deleteEmployee() {
 }
 var deptBudgetNames = []
 var salaries = []
-var deleteSalaries = []
+
 
 
 function viewBudget() {
@@ -850,31 +855,98 @@ function viewBudget() {
                         let query = "select dept_id, salary from role";
                         connection.query(query, function (err, res) {
                             if (err) throw err;
-    
+
                             res.forEach(database => {
                                 if (chosenDeptId === database.dept_id) {
-                                   
+
                                     salaries.push(database.salary);
-    
+
                                 }
                             })
 
 
                             // console.log("what is the sum array?" + salaries);
-                                var sum = salaries.reduce(function (a, b) { return a + b; }, 0);
-                                console.log("Total budget of " + answer.budget + " is " + sum);
-                                connection.end();
-                                while(salaries.length > 0) {
-                                    salaries.pop();
-                                }
-
-                             
+                            var sum = salaries.reduce(function (a, b) { return a + b; }, 0);
+                            console.log("Total budget of " + answer.budget + " is " + sum);
+                            start();
+                            while (salaries.length > 0) {
+                                salaries.pop();
+                            }
 
 
-                            
+
+
+
+                        })
                     })
                 })
-            })
         })
+    })
+}
+
+var viewManagerArray = [];
+var managersEmployeesAre = [];
+
+function viewEmployeeManager() {
+    let query = "select manager_id, manager from manager";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+
+        connection.query(query, function (err, res) {
+            if (err) throw err;
+
+            res.forEach(database => {
+                viewManagerArray.push(database.manager)
+                
+            })
+                viewManagerArray.shift();
+
+            const viewManagerQuestion = [
+                {
+                    name: "whichManager",
+                    type: "rawlist",
+                    message: "The staff of which manager do you want to view?",
+                    choices: viewManagerArray
+
+                }
+            ]
+
+            inquirer.prompt(viewManagerQuestion)
+                .then((answer) => {
+                    let query = "select manager_id, manager from manager";
+                    connection.query(query, function (err, res) {
+                        if (err) throw err;
+
+                        res.forEach(database => {
+                            if (answer.whichManager === database.manager) {
+                                chosenManagerId = database.manager_id;
+                            }
+                        })
+
+                        let query = "select manager_id, first_name, last_name from employee";
+                        connection.query(query, function (err, res) {
+                            if (err) throw err;
+
+                            res.forEach(database => {
+                                if (chosenManagerId === database.manager_id) {
+                                    managersEmployeesAre.push(`${database.first_name} ${database.last_name}`);
+
+                                }
+                            })
+                            console.log(answer.whichManager + "'s Employees are " + managersEmployeesAre);
+                            start();
+                            while (managersEmployeesAre.length > 0) {
+                                managersEmployeesAre.pop();
+                            }
+                           
+                            
+                            
+
+                        })
+                        
+                    })
+                })
+        })
+
     })
 }
