@@ -29,7 +29,33 @@ newRoleArray = [];
 newDeptArray = [];
 addDeptArray = [];
 
+function validateDept(add_dept) {
+    return add_dept !== "";
 
+}
+function validateFirst(first_name) {
+    return first_name !== "";
+}
+
+function validateSecond(last_name) {
+    return last_name !== "";
+}
+
+function validateRole(whatRole) {
+    return whatRole !== "";
+}
+
+function validateSalary(salary) {
+    var reg = /^[1000-1000000]+$/;
+    return reg.test(salary) || "Salary should be between 1000 - 1000000";
+}
+
+
+// function ValidateEmail(email) {
+//     var goodEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+//     return goodEmail.test(email) || "not a valid email!";
+
+// }
 
 
 function start() {
@@ -57,8 +83,6 @@ function start() {
         })
         .then(function (answer) {
             switch (answer.action) {
-
-
 
                 case "View all Employees":
                     viewEmployees();
@@ -154,7 +178,8 @@ function addDept() {
         {
             name: "add_dept",
             type: "input",
-            message: "What is the name of the department you want to add?"
+            message: "What is the name of the department you want to add?",
+            validate: validateDept
         }
     ]
     inquirer.prompt(deptQuestion)
@@ -211,12 +236,15 @@ function addEmployee() {
             {
                 name: "first_name",
                 type: "input",
-                message: "What is the employee's first name?"
+                message: "What is the employee's first name?",
+                validate: validateFirst
             },
             {
                 name: "last_name",
                 type: "input",
-                message: "What is the employee's last name?"
+                message: "What is the employee's last name?",
+                validate: validateSecond
+
             },
             {
                 name: "role",
@@ -292,8 +320,8 @@ const roleQuestion = [
     {
         name: "whatRole",
         type: "input",
-        message: "What role do you want to add?"
-        // validate: validateRole,
+        message: "What role do you want to add?",
+        validate: validateRole
 
     }
 ];
@@ -302,7 +330,8 @@ const nextRoleQuests = [
     {
         name: "salary",
         type: "input",
-        message: "What is this role's salary?"
+        message: "What is this role's salary?",
+        validate: validateSalary
     },
     {
         name: "department",
@@ -321,7 +350,6 @@ function addRole() {
             deptArray.push(database.dept)
 
         })
-        console.log("what is deptArray" + deptArray)
 
         inquirer.prompt(roleQuestion)
             .then((answer) => {
@@ -355,8 +383,6 @@ function addRole() {
 
                                 res.forEach(databaseRole => {
                                     if (answer.department === databaseRole.dept) {
-                                        // whatIsID = databaseRole.dept_id;
-                                        console.log("whats the id" + databaseRole.dept_id)
                                         foundRoleID = databaseRole.dept_id
                                     }
 
