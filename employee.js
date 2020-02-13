@@ -56,7 +56,10 @@ function start() {
                 "Add role",
                 "Add department",
                 "update employee roles",
-                "update employee's manager"
+                "update employee's manager",
+                "delete a department",
+                "delete a role",
+                "delete an employee"
             ]
         })
         .then(function (answer) {
@@ -94,6 +97,18 @@ function start() {
 
                 case "update employee's manager":
                     updateEmployeeManager();
+                    break;
+
+                case "delete a department":
+                    deleteDept();
+                    break;
+
+                case "delete a role":
+                    deleteRole();
+                    break;
+
+                case "delete an employee":
+                    deleteEmployee();
                     break;
 
                 case "Exit":
@@ -497,22 +512,15 @@ function updateEmployeeRole() {
                                                 })
 
                                             })
-
-
-
-
                                     }
 
                                     )
                                 }
 
-
-
                             })
 
                         })
                     })
-
             })
         })
     })
@@ -589,8 +597,8 @@ function updateEmployeeManager() {
                                     var bothNames = database.first_name + " " + database.last_name;
                                     // console.log(bothNames)
                                     if (bothNames == chosenName) {
-                                        var firstnameIs = database.first_name;
-                                        console.log(firstnameIs)
+                                        firstnameIs = database.first_name;
+                                        // console.log(firstnameIs)
                                         grabFirstName.push(firstnameIs)
 
 
@@ -602,30 +610,31 @@ function updateEmployeeManager() {
 
 
                                 })
+                                console.log("what is first name? " + firstnameIs)
 
-                                    var nextquery = "UPDATE employee SET ? WHERE ?";
-                                    connection.query(nextquery,
-                                        [
-                                            {
-                                                manager_id: foundManagerId
+                                var nextquery = "UPDATE employee SET ? WHERE ?";
+                                connection.query(nextquery,
+                                    [
+                                        {
+                                            manager_id: foundManagerId
 
-                                            },
-                                            {
+                                        },
+                                        {
 
-                                                first_name: grabFirstName
-                                            }
-
-
-                                        ],
-
-                                        function (err, res) {
-
-                                            if (err) throw err;
-                                            console.log("Manager updated!\n");
-                                            start();
+                                            first_name: firstnameIs
                                         }
-                                    )
-                              
+
+
+                                    ],
+
+                                    function (err, res) {
+
+                                        if (err) throw err;
+                                        console.log("Manager updated!\n");
+                                        start();
+                                    }
+                                )
+
 
 
                             })
@@ -634,6 +643,51 @@ function updateEmployeeManager() {
                     })
             })
         })
+    })
+
+}
+var deleteDeptArray = [];
+
+function deleteDept() {
+    let query = "select dept_id, dept from dept";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+
+        res.forEach(database => {
+            deleteDeptArray.push(database.dept)
+
+        })
+
+        const deleteDeptQuestion = [
+            {
+                name: "whichDept",
+                type: "rawlist",
+                message: "Which dept do you want to delete?",
+                choices: deleteDeptArray
+
+            }
+        ]
+
+        inquirer.prompt(deleteDeptQuestion)
+            .then((answer) => {
+                var query = "DELETE FROM dept WHERE ?";
+                connection.query(query,
+                    [
+                        {
+                            dept: answer.whichDept
+
+                        },
+                    ],
+
+                    function (err, res) {
+
+                        if (err) throw err;
+                        console.log("Department deleted!\n");
+                        start();
+                    }
+                )
+            })
+
     })
 
 }
