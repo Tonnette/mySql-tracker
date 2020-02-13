@@ -23,7 +23,7 @@ connection.connect(function (err) {
 
 // roleArray = ["Sales Lead", "Salesperson", "Lead Engineer", "Software Engineer", "Accountant", "Legal Team Lead", "Lawyer"];
 // deptArray = ["Sales", "Engineering", "Finance", "Legal"]
-managerArray = ["none",];
+managerArray = [];
 deptArray = [];
 roleArray = [];
 newRoleArray = [];
@@ -245,8 +245,8 @@ function addEmployee() {
                     res.forEach(database => {
                         if (answer.manager === database.manager) {
                             managerid = database.manager_id;
-                        } else if (answer.manager == "none") {
-                            managerid = null;
+                        } else if (answer.manager == "null") {
+                            managerid = 1;
                         }
 
                     })
@@ -691,3 +691,123 @@ function deleteDept() {
     })
 
 }
+var deleteRoleArray = [];
+
+function deleteRole() {
+    let query = "select role_id, title from role";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+
+        res.forEach(database => {
+            deleteRoleArray.push(database.title)
+
+        })
+
+        const deleteRoleQuestion = [
+            {
+                name: "whichRole",
+                type: "rawlist",
+                message: "Which role do you want to delete?",
+                choices: deleteRoleArray
+
+            }
+        ]
+
+        inquirer.prompt(deleteRoleQuestion)
+            .then((answer) => {
+                var query = "DELETE FROM role WHERE ?";
+                connection.query(query,
+                    [
+                        {
+                            title: answer.whichRole
+
+                        },
+                    ],
+
+                    function (err, res) {
+
+                        if (err) throw err;
+                        console.log("Role deleted!\n");
+                        start();
+                    }
+                )
+            })
+
+    })
+
+}
+var deleteNamesBoth = [];
+var deleteNamesFirst = [];
+
+function deleteEmployee() {
+    let query = "select employee_id, first_name, last_name from employee";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+
+        connection.query(query, function (err, res) {
+            if (err) throw err;
+
+            res.forEach(database => {
+                deleteNamesBoth.push(`${database.first_name} ${database.last_name}`)
+            })
+
+            const deleteRoleQuestion = [
+                {
+                    name: "whoDelete",
+                    type: "rawlist",
+                    message: "Which role do you want to delete?",
+                    choices: deleteNamesBoth
+
+                }
+            ]
+
+            inquirer.prompt(deleteRoleQuestion)
+                .then((answer) => {
+                    let EmployeeQuery = "select first_name, last_name from employee";
+                    connection.query(EmployeeQuery, function (err, res) {
+                        if (err) throw err;
+
+                        chosenName = answer.whoDelete;
+
+                        connection.query(EmployeeQuery, function (err, res) {
+                            if (err) throw err;
+
+                            res.forEach(database => {
+                                var bothNames = database.first_name + " " + database.last_name;
+                                // console.log(bothNames)
+                                if (bothNames == chosenName) {
+                                    firstnameIs = database.first_name;
+                                }
+
+                            })
+                            console.log("what is first name? " + firstnameIs)
+                                var query = "DELETE FROM employee WHERE ?";
+                                connection.query(query,
+                                    [
+                                        {
+                                            first_name: firstnameIs
+
+                                        },
+                                    ],
+
+                                    function (err, res) {
+
+                                        if (err) throw err;
+                                        console.log("Employee deleted!\n");
+                                        start();
+                                    }
+                                )
+                            })
+
+
+
+
+                        
+
+                    })
+
+                })
+        })
+
+    })
+} 
