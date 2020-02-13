@@ -468,7 +468,7 @@ function updateEmployeeRole() {
 
                                         res.forEach(databaseRole => {
                                             if (database.role_id == databaseRole.role_id) {
-                                                roleIdNum.push(databaseRole.role_id);
+                                                roleIdNum = databaseRole.role_id;
                                                 console.log(chosenName + "'s role is " + databaseRole.title)
                                             }
 
