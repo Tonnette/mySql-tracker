@@ -21,8 +21,7 @@ connection.connect(function (err) {
     start();
 });
 
-// roleArray = ["Sales Lead", "Salesperson", "Lead Engineer", "Software Engineer", "Accountant", "Legal Team Lead", "Lawyer"];
-// deptArray = ["Sales", "Engineering", "Finance", "Legal"]
+
 managerArray = [];
 deptArray = [];
 roleArray = [];
@@ -31,14 +30,6 @@ newDeptArray = [];
 addDeptArray = [];
 
 
-// const validateRole = async (whatRole) => {
-//     if (whatRole == "Sales Lead" || whatRole == "Salesperson" || whatRole == "Lead Engineer" || whatRole == "Software Engineer" || whatRole == "Accountant" || whatRole == "Legal Team Lead" || whatRole == "Lawyer") {
-//         return 'Role already exists';
-//     }
-//     else {
-//         return true;
-//     }
-// }
 
 
 function start() {
@@ -59,7 +50,8 @@ function start() {
                 "update employee's manager",
                 "delete a department",
                 "delete a role",
-                "delete an employee"
+                "delete an employee",
+                "view budget"
             ]
         })
         .then(function (answer) {
@@ -109,6 +101,10 @@ function start() {
 
                 case "delete an employee":
                     deleteEmployee();
+                    break;
+
+                case "view budget":
+                    viewBudget();
                     break;
 
                 case "Exit":
@@ -781,28 +777,28 @@ function deleteEmployee() {
 
                             })
                             console.log("what is first name? " + firstnameIs)
-                                var query = "DELETE FROM employee WHERE ?";
-                                connection.query(query,
-                                    [
-                                        {
-                                            first_name: firstnameIs
+                            var query = "DELETE FROM employee WHERE ?";
+                            connection.query(query,
+                                [
+                                    {
+                                        first_name: firstnameIs
 
-                                        },
-                                    ],
+                                    },
+                                ],
 
-                                    function (err, res) {
+                                function (err, res) {
 
-                                        if (err) throw err;
-                                        console.log("Employee deleted!\n");
-                                        start();
-                                    }
-                                )
-                            })
-
-
+                                    if (err) throw err;
+                                    console.log("Employee deleted!\n");
+                                    start();
+                                }
+                            )
+                        })
 
 
-                        
+
+
+
 
                     })
 
@@ -810,4 +806,75 @@ function deleteEmployee() {
         })
 
     })
-} 
+}
+var deptBudgetNames = []
+var salaries = []
+var deleteSalaries = []
+
+
+function viewBudget() {
+    let query = "select dept_id, dept from dept";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+
+        connection.query(query, function (err, res) {
+            if (err) throw err;
+
+            res.forEach(database => {
+                deptBudgetNames.push(database.dept)
+            })
+
+            const budgetQuest = [
+                {
+                    name: "budget",
+                    type: "rawlist",
+                    message: "Which department budget do you want to see?",
+                    choices: deptBudgetNames
+
+                }
+            ]
+            inquirer.prompt(budgetQuest)
+                .then((answer) => {
+                    let query = "select dept_id, dept from dept";
+                    connection.query(query, function (err, res) {
+                        if (err) throw err;
+
+                        res.forEach(database => {
+                            if (answer.budget === database.dept) {
+                                chosenDeptId = database.dept_id;
+                                // console.log("dept is " + chosenDeptId)
+
+                            }
+                        })
+
+                        let query = "select dept_id, salary from role";
+                        connection.query(query, function (err, res) {
+                            if (err) throw err;
+    
+                            res.forEach(database => {
+                                if (chosenDeptId === database.dept_id) {
+                                   
+                                    salaries.push(database.salary);
+    
+                                }
+                            })
+
+
+                            // console.log("what is the sum array?" + salaries);
+                                var sum = salaries.reduce(function (a, b) { return a + b; }, 0);
+                                console.log("Total budget of " + answer.budget + " is " + sum);
+                                connection.end();
+                                while(salaries.length > 0) {
+                                    salaries.pop();
+                                }
+
+                             
+
+
+                            
+                    })
+                })
+            })
+        })
+    })
+}
