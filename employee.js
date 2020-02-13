@@ -23,11 +23,12 @@ connection.connect(function (err) {
 
 // roleArray = ["Sales Lead", "Salesperson", "Lead Engineer", "Software Engineer", "Accountant", "Legal Team Lead", "Lawyer"];
 // deptArray = ["Sales", "Engineering", "Finance", "Legal"]
-
+managerArray = ["none", ];
 deptArray = [];
 roleArray = [];
 newRoleArray = [];
-newDeptArray =[];
+newDeptArray = [];
+
 
 // const validateRole = async (whatRole) => {
 //     if (whatRole == "Sales Lead" || whatRole == "Salesperson" || whatRole == "Lead Engineer" || whatRole == "Software Engineer" || whatRole == "Accountant" || whatRole == "Legal Team Lead" || whatRole == "Lawyer") {
@@ -120,7 +121,7 @@ function viewRoles() {
 
 
 function addEmployee() {
-    let query = "select role_id, role.title from role";
+    let query = "select role_id, title from role";
     connection.query(query, function (err, res) {
         if (err) throw err;
 
@@ -128,64 +129,98 @@ function addEmployee() {
             roleArray.push(database.title)
 
         }
-
-
         )
 
     })
 
-    const employeeQuestions = [
-        {
-            name: "first_name",
-            type: "input",
-            message: "What is the employee's first name?"
-        },
-        {
-            name: "last_name",
-            type: "input",
-            message: "What is the employee's last name?"
-        },
-        {
-            name: "role",
-            type: "list",
-            message: "What is the employee's role?",
-            choices: roleArray
-            // "Accountant", "Legal Team Lead", "Lawyer"]
-            // validate: role()
-        }
-    ]
+    let managerQuery = "select manager_id, manager from manager";
+    connection.query(managerQuery, function (err, res) {
+        if (err) throw err;
 
+        res.forEach(database => {
+            managerArray.push(database.manager)
 
-    inquirer.prompt(employeeQuestions)
-        .then(function (answer) {
-            let query = "select role_id, role.title from role";
-            connection.query(query, function (err, res) {
-                if (err) throw err;
-
-                res.forEach(database => {
-                    if (answer.role == database.title) {
-                        console.log("what is database.title? " + database.title)
-                        var databasePos = database.role_id;
-                        var query = "insert into employee set ?";
-                        connection.query(query,
-                            {
-                                first_name: answer.first_name,
-                                last_name: answer.last_name,
-                                role_id: databasePos
-
-                            },
-                            function (err, res) {
-
-                                if (err) throw err;
-                                console.log("employee added!");
-
-                                start()
-
-                            })
-                    }
-                })
-            })
         })
+
+        const employeeQuestions = [
+            {
+                name: "first_name",
+                type: "input",
+                message: "What is the employee's first name?"
+            },
+            {
+                name: "last_name",
+                type: "input",
+                message: "What is the employee's last name?"
+            },
+            {
+                name: "role",
+                type: "list",
+                message: "What is the employee's role?",
+                choices: roleArray
+                // "Accountant", "Legal Team Lead", "Lawyer"]
+                // validate: role()
+            },
+            {
+                name: "manager",
+                type: "list",
+                message: "Who is their manager?",
+                choices: managerArray
+                // "Accountant", "Legal Team Lead", "Lawyer"]
+                // validate: role()
+            }
+        ]
+
+
+        inquirer.prompt(employeeQuestions)
+            .then(function (answer) {
+                let query = "select manager_id, manager from manager";
+                connection.query(query, function (err, res) {
+                    if (err) throw err;
+
+                    res.forEach(database => {
+                        if (answer.manager === database.manager){
+                            managerid = database.manager_id;   
+                        } else if (answer.manager == "none"){
+                            managerid = null;
+                        }
+
+                    })
+
+                    let query = "select role_id, title from role";
+                    connection.query(query, function (err, res) {
+                        if (err) throw err;
+
+                        res.forEach(database => {
+                            if (answer.role == database.title) {
+                                databasePos = database.role_id;
+
+                            }
+                        })
+                                var query = "insert into employee set ?";
+                                connection.query(query,
+                                    {
+                                        first_name: answer.first_name,
+                                        last_name: answer.last_name,
+                                        role_id: databasePos,
+                                        manager_id: managerid
+
+                                    },
+                                    function (err, res) {
+
+                                        if (err) throw err;
+                                        console.log("employee added!");
+
+                                        start()
+
+                                    })
+                         
+                    })
+                })
+
+            })
+
+    })
 }
 
 const roleQuestion = [
@@ -383,35 +418,35 @@ function updateEmployeeRole() {
 
                                                     res.forEach(databaseDept => {
                                                         newDeptArray.push(databaseDept.dept)
-                                                        if(answer.whatDeptNow === databaseDept.dept){
-                                                            console.log("what's the id? "  + databaseDept.dept_id)
+                                                        if (answer.whatDeptNow === databaseDept.dept) {
+                                                            console.log("what's the id? " + databaseDept.dept_id)
                                                             foundRoleID = databaseDept.dept_id
                                                         }
 
 
                                                     })
-                                                var nextquery = "UPDATE role SET ? WHERE ? ";
-                                                connection.query(nextquery,
-                                                    [
-                                                        {
-                                                            title: answer.whatRoleNow,
-                                                            salary: answer.whatSalaryNow,
-                                                            dept_id: foundRoleID
+                                                    var nextquery = "UPDATE role SET ? WHERE ? ";
+                                                    connection.query(nextquery,
+                                                        [
+                                                            {
+                                                                title: answer.whatRoleNow,
+                                                                salary: answer.whatSalaryNow,
+                                                                dept_id: foundRoleID
 
 
-                                                        },
-                                                        {
-                                                            role_id: roleIdNum
+                                                            },
+                                                            {
+                                                                role_id: roleIdNum
+                                                            }
+                                                        ],
+                                                        function (err, res) {
+
+                                                            if (err) throw err;
+                                                            console.log("role updated!\n");
+                                                            start();
                                                         }
-                                                    ],
-                                                    function (err, res) {
-
-                                                        if (err) throw err;
-                                                        console.log("role updated!\n");
-                                                        start();
-                                                    }
-                                                )
-                                            })
+                                                    )
+                                                })
 
                                             })
 
