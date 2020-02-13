@@ -23,11 +23,12 @@ connection.connect(function (err) {
 
 // roleArray = ["Sales Lead", "Salesperson", "Lead Engineer", "Software Engineer", "Accountant", "Legal Team Lead", "Lawyer"];
 // deptArray = ["Sales", "Engineering", "Finance", "Legal"]
-managerArray = ["none", ];
+managerArray = ["none",];
 deptArray = [];
 roleArray = [];
 newRoleArray = [];
 newDeptArray = [];
+addDeptArray = [];
 
 
 // const validateRole = async (whatRole) => {
@@ -53,6 +54,7 @@ function start() {
                 "view all roles",
                 "Add Employee",
                 "Add role",
+                "Add department",
                 "update employee roles"
             ]
         })
@@ -81,6 +83,10 @@ function start() {
 
                 case "Add role":
                     addRole();
+                    break;
+
+                case "Add department":
+                    addDept();
                     break;
 
                 case "update employee roles":
@@ -119,6 +125,42 @@ function viewRoles() {
     })
 }
 
+
+function addDept() {
+    const deptQuestion = [
+        {
+            name: "add_dept",
+            type: "input",
+            message: "What is the name of the department you want to add?"
+        }
+    ]
+    inquirer.prompt(deptQuestion)
+            .then(function (answer) {
+                let query = "insert into dept set ?";
+                connection.query(query, 
+               
+                        {
+                            dept: answer.add_dept
+
+                        },
+                        function (err, res) {
+
+                            if (err) throw err;
+                            console.log("role added!");
+
+                            start()
+
+                        })
+
+                
+
+            })
+
+
+
+ 
+
+}
 
 function addEmployee() {
     let query = "select role_id, title from role";
@@ -179,9 +221,9 @@ function addEmployee() {
                     if (err) throw err;
 
                     res.forEach(database => {
-                        if (answer.manager === database.manager){
-                            managerid = database.manager_id;   
-                        } else if (answer.manager == "none"){
+                        if (answer.manager === database.manager) {
+                            managerid = database.manager_id;
+                        } else if (answer.manager == "none") {
                             managerid = null;
                         }
 
@@ -197,24 +239,24 @@ function addEmployee() {
 
                             }
                         })
-                                var query = "insert into employee set ?";
-                                connection.query(query,
-                                    {
-                                        first_name: answer.first_name,
-                                        last_name: answer.last_name,
-                                        role_id: databasePos,
-                                        manager_id: managerid
+                        var query = "insert into employee set ?";
+                        connection.query(query,
+                            {
+                                first_name: answer.first_name,
+                                last_name: answer.last_name,
+                                role_id: databasePos,
+                                manager_id: managerid
 
-                                    },
-                                    function (err, res) {
+                            },
+                            function (err, res) {
 
-                                        if (err) throw err;
-                                        console.log("employee added!");
+                                if (err) throw err;
+                                console.log("employee added!");
 
-                                        start()
+                                start()
 
-                                    })
-                         
+                            })
+
                     })
                 })
 
