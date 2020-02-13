@@ -13,7 +13,7 @@ var connection = mysql.createConnection({
 
     // Your password
     password: "souths81",
-    database: "employeeDB"
+    database: "employee_DB"
 });
 
 connection.connect(function (err) {
@@ -55,15 +55,14 @@ function start() {
                 "Add Employee",
                 "Add role",
                 "Add department",
-                "update employee roles"
+                "update employee roles",
+                "update employee's manager"
             ]
         })
         .then(function (answer) {
             switch (answer.action) {
 
-                case "Exit":
-                    connection.end();
-                    break;
+
 
                 case "View all Employees":
                     viewEmployees();
@@ -91,6 +90,14 @@ function start() {
 
                 case "update employee roles":
                     updateEmployeeRole();
+                    break;
+
+                case "update employee's manager":
+                    updateEmployeeManager();
+                    break;
+
+                case "Exit":
+                    connection.end();
                     break;
 
             }
@@ -135,30 +142,30 @@ function addDept() {
         }
     ]
     inquirer.prompt(deptQuestion)
-            .then(function (answer) {
-                let query = "insert into dept set ?";
-                connection.query(query, 
-               
-                        {
-                            dept: answer.add_dept
+        .then(function (answer) {
+            let query = "insert into dept set ?";
+            connection.query(query,
 
-                        },
-                        function (err, res) {
+                {
+                    dept: answer.add_dept
 
-                            if (err) throw err;
-                            console.log("role added!");
+                },
+                function (err, res) {
 
-                            start()
+                    if (err) throw err;
+                    console.log("role added!");
 
-                        })
+                    start()
 
-                
-
-            })
+                })
 
 
 
- 
+        })
+
+
+
+
 
 }
 
@@ -368,10 +375,9 @@ var employeeRoleIdArray = [];
 var roleIdNum = [];
 
 function updateEmployeeRole() {
-    let query = "select dept_id, dept.dept from dept";
+    let query = "select dept_id, dept from dept";
     connection.query(query, function (err, res) {
         if (err) throw err;
-        // const dataRoleArray = [];
         const newDeptArray = [];
 
         res.forEach(database => {
@@ -454,7 +460,7 @@ function updateEmployeeRole() {
                                         })
                                         inquirer.prompt(roleUpdate)
                                             .then((answer) => {
-                                                let query = "select dept_id, dept.dept from dept";
+                                                let query = "select dept_id, dept from dept";
                                                 connection.query(query, function (err, res) {
                                                     if (err) throw err;
 
@@ -510,4 +516,124 @@ function updateEmployeeRole() {
             })
         })
     })
+}
+var managerEmployeeArray = [];
+var newManagerArray = [];
+var grabRoleId = [];
+var grabFirstName = [];
+var foundManagerId = [];
+var EmployeeBothNames = []
+
+function updateEmployeeManager() {
+    let query = "select manager_id, manager from manager";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+
+        res.forEach(database => {
+            newManagerArray.push(database.manager)
+        })
+
+        var query = "SELECT employee_id, first_name, last_name, role_id FROM employee e ";
+        connection.query(query, function (err, res) {
+            if (err) throw err;
+
+            connection.query(query, function (err, res) {
+                if (err) throw err;
+
+                res.forEach(database => {
+                    managerEmployeeArray.push(`${database.first_name} ${database.last_name}`)
+                })
+
+                const managerQuestions = [
+                    {
+                        name: "who",
+                        type: "rawlist",
+                        message: "Whose manager do you want to update?",
+                        choices: managerEmployeeArray
+
+                    },
+                    {
+                        name: "newManager",
+                        type: "rawlist",
+                        message: "Who is their new manager?",
+                        choices: newManagerArray
+
+                    }
+
+                ]
+                inquirer.prompt(managerQuestions)
+                    .then((answer) => {
+                        let query = "select manager_id, manager from manager";
+                        connection.query(query, function (err, res) {
+                            if (err) throw err;
+
+                            res.forEach(database => {
+                                if (answer.newManager === database.manager) {
+                                    foundManagerId.push(database.manager_id)
+                                }
+
+
+                            })
+                        })
+
+                        let EmployeeQuery = "select first_name, last_name, manager_id from employee";
+                        connection.query(EmployeeQuery, function (err, res) {
+                            if (err) throw err;
+
+                            chosenName = answer.who
+
+                            connection.query(EmployeeQuery, function (err, res) {
+                                if (err) throw err;
+
+                                res.forEach(database => {
+                                    var bothNames = database.first_name + " " + database.last_name;
+                                    // console.log(bothNames)
+                                    if (bothNames == chosenName) {
+                                        var firstnameIs = database.first_name;
+                                        console.log(firstnameIs)
+                                        grabFirstName.push(firstnameIs)
+
+
+
+
+                                    }
+
+
+
+
+                                })
+
+                                    var nextquery = "UPDATE employee SET ? WHERE ?";
+                                    connection.query(nextquery,
+                                        [
+                                            {
+                                                manager_id: foundManagerId
+
+                                            },
+                                            {
+
+                                                first_name: grabFirstName
+                                            }
+
+
+                                        ],
+
+                                        function (err, res) {
+
+                                            if (err) throw err;
+                                            console.log("Manager updated!\n");
+                                            start();
+                                        }
+                                    )
+                              
+
+
+                            })
+                        })
+
+                    })
+            })
+        })
+    })
+
 }
