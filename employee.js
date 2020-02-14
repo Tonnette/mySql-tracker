@@ -45,17 +45,20 @@ function validateRole(whatRole) {
     return whatRole !== "";
 }
 
+function validateWhatRoleNow(whatRoleNow) {
+    return whatRoleNow !== "";
+}
+
 function validateSalary(salary) {
-    var reg = /^[1000-1000000]+$/;
+    var reg = /^\d{4,7}$/;
     return reg.test(salary) || "Salary should be between 1000 - 1000000";
 }
 
+function validateWhatSalaryNow(whatSalaryNow) {
+    var reg = /^\d{4,7}$/;
+    return reg.test(whatSalaryNow) || "Salary should be between 1000 - 1000000";
+}
 
-// function ValidateEmail(email) {
-//     var goodEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-//     return goodEmail.test(email) || "not a valid email!";
-
-// }
 
 
 function start() {
@@ -194,7 +197,7 @@ function addDept() {
                 function (err, res) {
 
                     if (err) throw err;
-                    console.log("role added!");
+                    console.log("department added!");
 
                     start()
 
@@ -251,16 +254,14 @@ function addEmployee() {
                 type: "list",
                 message: "What is the employee's role?",
                 choices: roleArray
-                // "Accountant", "Legal Team Lead", "Lawyer"]
-                // validate: role()
+
             },
             {
                 name: "manager",
                 type: "list",
                 message: "Who is their manager?",
                 choices: managerArray
-                // "Accountant", "Legal Team Lead", "Lawyer"]
-                // validate: role()
+
             }
         ]
 
@@ -436,8 +437,8 @@ function updateEmployeeRole() {
 
                 res.forEach(database => {
                     employeeArray.push(`${database.first_name} ${database.last_name}`)
-                    employeeRoleIdArray.push(`${database.role_id}`)
-                    employeeFirstNameArray.push(`${database.first_name}`)
+                    // employeeRoleIdArray.push(`${database.role_id}`)
+                    // employeeFirstNameArray.push(`${database.first_name}`)
                 })
 
                 const updateEmployeeRoleQuests = [
@@ -454,11 +455,13 @@ function updateEmployeeRole() {
                         name: "whatRoleNow",
                         type: "input",
                         message: "What role are they now?",
+                        validate: validateWhatRoleNow
                     },
                     {
                         name: "whatSalaryNow",
                         type: "input",
                         message: "What is their new salary?",
+                        validate: validateWhatSalaryNow
 
                     },
 
@@ -509,7 +512,7 @@ function updateEmployeeRole() {
                                                     res.forEach(databaseDept => {
                                                         newDeptArray.push(databaseDept.dept)
                                                         if (answer.whatDeptNow === databaseDept.dept) {
-                                                            console.log("what's the id? " + databaseDept.dept_id)
+                                                            // console.log("what's the id? " + databaseDept.dept_id)
                                                             foundRoleID = databaseDept.dept_id
                                                         }
 
@@ -959,7 +962,7 @@ function viewEmployeeManager() {
 
                                 }
                             })
-                            console.log(answer.whichManager + "'s Employees are " + managersEmployeesAre);
+                            console.log(answer.whichManager + " is the manager of " + managersEmployeesAre);
                             start();
                             while (managersEmployeesAre.length > 0) {
                                 managersEmployeesAre.pop();
